@@ -19,14 +19,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
         DB::statement('SET FOREIGN_KEY_CHECKS = 0');
 
         User::truncate();
         Category::truncate();
         Product::truncate();
         Transaction::truncate();
-        DB::table('category_products')->truncate();
+        DB::table('category_product')->truncate();
 
         User::flushEventListeners();
         Category::flushEventListeners();
@@ -40,10 +39,12 @@ class DatabaseSeeder extends Seeder
 
         \App\Models\User::factory($usersQuantity)->create();
         \App\Models\Category::factory($categoriesQuantity)->create();
-        \App\Models\Product::factory($productsQuantity)->create()->each(function ($product){
+        \App\Models\Product::factory($productsQuantity)->create()->each(
+            function ($product){
             $categories = Category::all()->random(mt_rand(1,5))->pluck('id');
-            $product->$categories()->attach($categories);
-        });
+            $product->categories()->attach($categories);
+            }
+    );
         \App\Models\Transaction::factory($transactionsQuantity)->create();
 
     }

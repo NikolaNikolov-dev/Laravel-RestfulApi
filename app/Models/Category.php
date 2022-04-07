@@ -15,6 +15,7 @@ class Category extends Model
     ];
 
     public function products(){
+        // belongsToMany -> only when we have many to many relationship !!!
       return  $this->belongsToMany(Product::class);
     }
 }
