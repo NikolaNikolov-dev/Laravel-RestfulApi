@@ -2,12 +2,21 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use App\Traits\ApiResponser;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use PDOException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
 class Handler extends ExceptionHandler
 {
-    // use ApiResponser;
+    use ApiResponser;
     /**
      * A list of the exception types that are not reported.
      *
@@ -39,16 +48,56 @@ class Handler extends ExceptionHandler
             //
         });
 
-        // $this->renderable(function (NotFoundHttpException $e, $request) {
-        //     if ($request->is('api/*')) {
-        //         return response()->json([
-        //             'message' => 'Record not found.'
-        //         ], 404);
-        //     }
-        // });
+        $this->renderable(function ( $request,Throwable $e ) {
+            if ($e instanceof ValidationException) {
+                return $this->convertValidationExceptionToResponse($e,$request);
+            }
+
+            if ($e instanceof ModelNotFoundException) {
+                $modelName = strtolower(class_basename($e->getModel()));
+                return $this->errorResponse("Does not exist any {$modelName} with the specified identificator",404);
+            }
+
+            if ($e instanceof AuthenticationException) {
+                return $this->unauthenticated($request,$e);
+            }
+
+            if ($e instanceof AuthorizationException) {
+                return $this->errorResponse($e->getMessage(),403);
+            }
+
+            if ($e instanceof MethodNotAllowedException) {
+                return $this->errorResponse('The specified method for the request is invalid.',405);
+            }
+
+            if ($e instanceof NotFoundHttpException) {
+                return $this->errorResponse('The specified URL cannot be found',404);
+            }
+
+            if ($e instanceof HttpException) {
+                return $this->errorResponse($e->getMessage(),$e->getStatusCode());
+            }
+
+            if ($e instanceof PDOException) {
+
+                $errorCode = $e->errorInfo[1];
+
+                if($errorCode == 1451){
+
+                    return $this->errorResponse('Cannot remove resource permanently. It is related with any other resource',409);
+                }
+            }
+
+            if (config('app.debug')) { // if app\config is in debug mode
+                return $this->errorResponse($request,$e);
+            }
+
+            return $this->errorResponse('Unexpected Exception. Try again later', 500);
+        });
     }
 
-    // protected function convertValidationExceptionToResponse($){
-
-    // }
+    protected function convertValidationExceptionToResponse(ValidationException $e,$request){
+        $errors = $e->validator->errors()->getMessages();
+        return $this->errorResponse($errors,422);
+    }
 }
