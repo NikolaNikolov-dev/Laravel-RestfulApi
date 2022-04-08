@@ -40,6 +40,11 @@ Route::resource('products','App\Http\Controllers\Product\ProductController',['on
  * Sellers
  */
 Route::resource('sellers','App\Http\Controllers\Seller\SellerController',['only' => ['index','show']]);
+Route::resource('sellers.transactions','App\Http\Controllers\Seller\SellerTransactionController',['only' => ['index']]);
+Route::resource('sellers.categories','App\Http\Controllers\Seller\SellerCategoryController',['only' => ['index']]);
+Route::resource('sellers.buyers','App\Http\Controllers\Seller\SellerBuyerController',['only' => ['index']]);
+Route::resource('sellers.products','App\Http\Controllers\Seller\SellerProductController',['only' => ['index','store','update','destroy']]);
+
 /**
  * Transactions
  */
