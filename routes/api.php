@@ -27,6 +27,11 @@ Route::resource('buyers.categories','App\Http\Controllers\Buyer\BuyerCategoryCon
  * Categories
  */
 Route::resource('categories','App\Http\Controllers\Category\CategoryController',['except' => ['create','edit']]);
+Route::resource('categories.products','App\Http\Controllers\Category\CategoryProductController',['only' => ['index']]);
+Route::resource('categories.sellers','App\Http\Controllers\Category\CategorySellerController',['only' => ['index']]);
+Route::resource('categories.transactions','App\Http\Controllers\Category\CategoryTransactionController',['only' => ['index']]);
+Route::resource('categories.buyers','App\Http\Controllers\Category\CategoryBuyerController',['only' => ['index']]);
+
 /**
  * Products
  */
